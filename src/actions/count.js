@@ -10,8 +10,7 @@ headers.append('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8
 export const setProducts = data => {
     return {
         type: GETPRODUCTS,
-        products: data.products,
-        ips: data.ips
+        products: data,
     }
 }
 
@@ -26,14 +25,15 @@ function fetchProducts() {
     return dispatch => {
         let bar = 1
 
-        let request = new Request('data.json', {
+        let request = new Request('/get_user_products/', {
             headers,
-            /*method: 'POST', 
-            body: `foo=${bar}`*/
+            method: 'POST',
+            credentials: 'include' // 添加cookies
+            // body: `foo=${bar}`
         })
 
         return fetch(request)
-            .then((res) => { console.log(res.status); return res.json() })
+            .then((res) => { return res.json() })
             .then((data) => {
                 dispatch(setProducts(data))
             })

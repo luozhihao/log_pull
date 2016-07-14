@@ -17,11 +17,11 @@ class List extends Component {
         }
     }
 
-
+    // 拉取状态
     enterIconLoading = () => {
         this.setState({ iconLoading: true })
     }
-
+    
     render() {
         const { getFieldProps } = this.props.form
 
@@ -45,7 +45,7 @@ class List extends Component {
                                             style={{ width: '80%' }}
                                             placeholder="请填写路径"
                                             defaultValue={e.path}
-                                         />
+                                        />
                                     </Col>
                                     <Col span={3}>
                                         <Button type="dashed" icon="cross-circle">
@@ -75,7 +75,11 @@ class List extends Component {
 }
 
 List.propTypes = {
-    text: PropTypes.string.isRequired
+    lists: PropTypes.arrayOf(PropTypes.shape({
+        product: PropTypes.string.isRequired,
+        host: PropTypes.string.isRequired,
+        path: PropTypes.string.isRequired
+    }).isRequired).isRequired
 }
 
 List = createForm()(List)

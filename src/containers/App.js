@@ -1,14 +1,19 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { Input, Select, Button, DatePicker, Form, Modal } from 'antd'
+import { Input, Select, Button, Form, Modal } from 'antd'
 import { getSelects, setList } from '../actions/count'
 import List from '../components/List'
 
 const Option = Select.Option
 const createForm = Form.create
 const FormItem = Form.Item
-const RangePicker = DatePicker.RangePicker
 const confirm = Modal.confirm
+
+// 创建对象时设置初始化信息
+const headers = new Headers()
+
+// 设置请求头
+headers.append('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
 
 class App extends Component {
 
@@ -19,8 +24,14 @@ class App extends Component {
         getSelects()
     }
 
+
+    // 获取选中产品
+    getHosts = value => {
+        console.log(value)
+    }
+
     // 加入列表
-    handleSubmit = (e) => {
+    handleSubmit = e => {
         const { setList } = this.props
 
         e.preventDefault()
@@ -45,18 +56,28 @@ class App extends Component {
 
     // 确认退出
     showConfirm = () => {
-      confirm({
-        title: '确认提示',
-        content: '是否退出系统？',
-        onOk() {
-          console.log('确定')
-        },
-        onCancel() {}
-      })
+        confirm({
+            title: '确认提示',
+            content: '是否退出系统？',
+            onOk() {
+                let request = new Request('/logout/', {
+                    headers,
+                    method: 'POST',
+                    credentials: 'include'
+                })
+
+                fetch(request)
+                    .then((res) => { return res.json() })
+                    .then((data) => {
+                        location.href="/"
+                    })
+            },
+            onCancel() {}
+        })
     }
 
     render() {
-        const { products, types, lists } = this.props
+        const { products, ips, lists } = this.props
 
         const { getFieldProps } = this.props.form
 
@@ -78,21 +99,10 @@ class App extends Component {
             ]
         })
 
-        /*const timeProps = getFieldProps('times', {
-            rules: [
-                { required: true, type: 'array', message: '请选择时间范围' },
-            ]
-        })
-
-        const formItemLayout = {
-            labelCol: { span: 7 },
-            wrapperCol: { span: 12 }
-        }*/
-
         return(
             <div className="log-box">
                 <div className="panel panel-default log-header">
-                    <div className="panel-heading">
+                    <div className="panel-heading header-style">
                         <h1 className="panel-title">
                             日志拉取工具
                             <Button className="exit-btn" onClick={this.showConfirm}>
@@ -109,6 +119,7 @@ class App extends Component {
                                     placeholder="请选择产品"
                                     optionFilterProp="children"
                                     notFoundContent="无法找到"
+                                    onSelect={this.getHosts}
                                 >
                                     {
                                         products.map((e,index) => 
@@ -128,7 +139,7 @@ class App extends Component {
                                     notFoundContent="无法找到"
                                 >
                                     {
-                                        types.map((e,index) => 
+                                        ips.map((e,index) => 
                                             <Option value={e.value} key={index}>{e.label}</Option>
                                         )
                                     }
@@ -141,9 +152,6 @@ class App extends Component {
                                     placeholder="请填写路径"
                                  />
                             </FormItem>
-                            {/*<FormItem label="时间">
-                                <RangePicker {...timeProps} />
-                            </FormItem>*/}
                             <FormItem>
                                 <Button onClick={this.handleSubmit}>加入列表</Button>
                             </FormItem>
@@ -159,7 +167,7 @@ class App extends Component {
 const getData = state => {
     return {
         products: state.update.products,
-        types: state.update.types,
+        ips: state.update.ips,
         lists: state.list.lists
     }
 }
