@@ -8,7 +8,6 @@ const FormItem = Form.Item
 const RangePicker = DatePicker.RangePicker
 
 class List extends Component {
-
     constructor(props) {
         super(props)
         this.state = {
@@ -21,7 +20,12 @@ class List extends Component {
     enterIconLoading = () => {
         this.setState({ iconLoading: true })
     }
-    
+
+    // 更新路径
+    handleChange = (e) => {
+        this.props.handleChange(e.target)
+    }
+
     render() {
         const { getFieldProps } = this.props.form
 
@@ -35,20 +39,26 @@ class List extends Component {
             <Form inline form={this.props.form}>
                 <ul className="list-group mt50 list-box">
                     {
-                        this.props.lists.map((e, i) => 
-                            <li className="list-group-item clearfix" key={i}>
+                        this.props.lists.map((e, index) => 
+                            <li className="list-group-item clearfix" key={index}>
                                 <row>
                                     <Col span={6}>{e.product}</Col>
                                     <Col span={6}>{e.host}</Col>
                                     <Col span={9}>
                                         <Input
-                                            style={{ width: '80%' }}
-                                            placeholder="请填写路径"
-                                            defaultValue={e.path}
+                                            id={index}
+                                            style={{width: '80%'}}
+                                            placeholder="请输入路径" 
+                                            value={e.path}
+                                            onChange={this.handleChange}
                                         />
                                     </Col>
                                     <Col span={3}>
-                                        <Button type="dashed" icon="cross-circle">
+                                        <Button type="dashed" icon="copy" onClick={this.props.copy.bind(this, e)}>
+                                            拷贝
+                                        </Button>
+                                        &nbsp;&nbsp;&nbsp;
+                                        <Button type="dashed" icon="cross-circle" onClick={this.props.delete.bind(this, index)}>
                                             删除
                                         </Button>
                                     </Col>
@@ -61,11 +71,16 @@ class List extends Component {
                     <RangePicker {...timeProps} />
                 </div>
                 <div className="text-center mt50">
-                    <Button type="primary" icon="cloud-download-o" loading={this.state.iconLoading} onClick={this.enterIconLoading}>
+                    <Button 
+                        type="primary" 
+                        icon="cloud-download-o" 
+                        loading={this.state.iconLoading} 
+                        onClick={this.enterIconLoading}
+                    >
                         拉取日志
                     </Button>
                     &nbsp;&nbsp;&nbsp;
-                    <Button type="ghost" icon="reload">
+                    <Button type="ghost" icon="reload" onClick={this.props.clear}>
                         清空列表
                     </Button>
                 </div>

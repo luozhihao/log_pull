@@ -40096,7 +40096,7 @@
 	// 初始化state数据
 	var initialState = {
 	    products: [],
-	    ips: [{ value: '127.0.0.1', label: '127.0.0.1' }, { value: '12.2.2.2', label: '12.2.2.2' }]
+	    ips: []
 	};
 
 	function update() {
@@ -40106,6 +40106,9 @@
 	    switch (action.type) {
 	        case _constants.GETPRODUCTS:
 	            return Object.assign({}, state, { products: action.products });
+	            break;
+	        case _constants.GETHOSTS:
+	            return Object.assign({}, state, { ips: action.hosts });
 	            break;
 	        default:
 	            return state;
@@ -40124,6 +40127,10 @@
 	// action常量
 	var GETPRODUCTS = exports.GETPRODUCTS = 'GETPRODUCTS';
 	var GETLIST = exports.GETLIST = 'GETLIST';
+	var GETHOSTS = exports.GETHOSTS = 'GETHOSTS';
+	var DELETELIST = exports.DELETELIST = 'DELETELIST';
+	var UPDATEPATH = exports.UPDATEPATH = 'UPDATEPATH';
+	var CLEARLIST = exports.CLEARLIST = 'CLEARLIST';
 
 /***/ },
 /* 587 */
@@ -40140,7 +40147,8 @@
 
 	// 初始化state数据
 	var initialState = {
-	    lists: []
+	    lists: [],
+	    update: false // 强制render
 	};
 
 	function list() {
@@ -40149,8 +40157,18 @@
 
 	    switch (action.type) {
 	        case _constants.GETLIST:
-	            return Object.assign({}, state, { lists: action.arr });
+	            return Object.assign({}, state, { lists: state.lists.concat(action.arr) });
 	            break;
+	        case _constants.DELETELIST:
+	            state.lists.splice(action.index, 1);
+
+	            return Object.assign({}, state, { lists: state.lists, update: !state.update });
+	        case _constants.UPDATEPATH:
+	            state.lists[action.index].path = action.value;
+
+	            return Object.assign({}, state, { lists: state.lists, update: !state.update });
+	        case _constants.CLEARLIST:
+	            return Object.assign({}, state, { lists: [] });
 	        default:
 	            return state;
 	    }
@@ -40286,8 +40304,13 @@
 	            args[_key] = arguments[_key];
 	        }
 
-	        return _ret = (_temp4 = (_this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(App)).call.apply(_Object$getPrototypeO, [this].concat(args))), _this), _this.getHosts = function (value) {
-	            console.log(value);
+	        return _ret = (_temp4 = (_this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(App)).call.apply(_Object$getPrototypeO, [this].concat(args))), _this), _this.getIps = function (value) {
+	            var getHosts = _this.props.getHosts;
+
+
+	            getHosts(value);
+
+	            _this.props.form.setFieldsValue({ 'hosts': [] });
 	        }, _this.handleSubmit = function (e) {
 	            var setList = _this.props.setList;
 
@@ -40329,6 +40352,14 @@
 	                },
 	                onCancel: function onCancel() {}
 	            });
+	        }, _this.copy = function (e) {
+	            _this.props.setList([{ product: e.product, host: e.host, path: e.path }]);
+	        }, _this.delete = function (index) {
+	            _this.props.deleteList(index);
+	        }, _this.handleChange = function (e) {
+	            _this.props.updatePath(e.value, e.id);
+	        }, _this.clear = function () {
+	            _this.props.clearList();
 	        }, _temp4), _possibleConstructorReturn(_this, _ret);
 	    }
 
@@ -40337,7 +40368,7 @@
 	        value: function componentDidMount() {
 	            var getSelects = this.props.getSelects;
 
-	            // 获取下拉框数据
+	            // 获取产品列表
 
 	            getSelects();
 	        }
@@ -40350,6 +40381,18 @@
 
 	        // 确认退出
 
+
+	        // 拷贝
+
+
+	        // 删除
+
+
+	        // 更新路径
+
+
+	        // 清空列表
+
 	    }, {
 	        key: 'render',
 	        value: function render() {
@@ -40357,6 +40400,7 @@
 	            var products = _props.products;
 	            var ips = _props.ips;
 	            var lists = _props.lists;
+	            var update = _props.update;
 	            var getFieldProps = this.props.form.getFieldProps;
 
 
@@ -40384,6 +40428,13 @@
 	                        _react2.default.createElement(
 	                            'h1',
 	                            { className: 'panel-title' },
+	                            _react2.default.createElement(
+	                                'ul',
+	                                { className: 'circle-box' },
+	                                _react2.default.createElement('li', { className: 'red-circle circle' }),
+	                                _react2.default.createElement('li', { className: 'yellow-circle circle' }),
+	                                _react2.default.createElement('li', { className: 'gray-circle circle' })
+	                            ),
 	                            '日志拉取工具',
 	                            _react2.default.createElement(
 	                                _button2.default,
@@ -40400,7 +40451,7 @@
 	                            { inline: true, form: this.props.form },
 	                            _react2.default.createElement(
 	                                FormItem,
-	                                { label: '产品' },
+	                                { label: '产品', hasFeedback: true },
 	                                _react2.default.createElement(
 	                                    _select2.default,
 	                                    _extends({ showSearch: true
@@ -40409,7 +40460,7 @@
 	                                        placeholder: '请选择产品',
 	                                        optionFilterProp: 'children',
 	                                        notFoundContent: '无法找到',
-	                                        onSelect: this.getHosts
+	                                        onSelect: this.getIps
 	                                    }),
 	                                    products.map(function (e, index) {
 	                                        return _react2.default.createElement(
@@ -40422,7 +40473,7 @@
 	                            ),
 	                            _react2.default.createElement(
 	                                FormItem,
-	                                { label: 'IP' },
+	                                { label: 'IP', hasFeedback: true },
 	                                _react2.default.createElement(
 	                                    _select2.default,
 	                                    _extends({
@@ -40445,7 +40496,7 @@
 	                            ),
 	                            _react2.default.createElement(
 	                                FormItem,
-	                                { label: '路径' },
+	                                { label: '路径', hasFeedback: true },
 	                                _react2.default.createElement(_input2.default, _extends({}, pathProps, {
 	                                    style: { width: '300px' },
 	                                    placeholder: '请填写路径'
@@ -40461,7 +40512,14 @@
 	                                )
 	                            )
 	                        ),
-	                        _react2.default.createElement(_List2.default, { lists: lists })
+	                        _react2.default.createElement(_List2.default, {
+	                            lists: lists,
+	                            update: update,
+	                            copy: this.copy,
+	                            'delete': this.delete,
+	                            handleChange: this.handleChange,
+	                            clear: this.clear
+	                        })
 	                    )
 	                )
 	            );
@@ -40475,13 +40533,14 @@
 	    return {
 	        products: state.update.products,
 	        ips: state.update.ips,
-	        lists: state.list.lists
+	        lists: state.list.lists,
+	        update: state.list.update
 	    };
 	};
 
 	App = createForm()(App);
 
-	exports.default = (0, _reactRedux.connect)(getData, { getSelects: _count.getSelects, setList: _count.setList })(App);
+	exports.default = (0, _reactRedux.connect)(getData, { getSelects: _count.getSelects, getHosts: _count.getHosts, setList: _count.setList, deleteList: _count.deleteList, updatePath: _count.updatePath, clearList: _count.clearList })(App);
 
 /***/ },
 /* 591 */
@@ -55365,8 +55424,9 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.setList = exports.setProducts = undefined;
+	exports.updatePath = exports.clearList = exports.deleteList = exports.setHosts = exports.setList = exports.setProducts = undefined;
 	exports.getSelects = getSelects;
+	exports.getHosts = getHosts;
 
 	var _constants = __webpack_require__(586);
 
@@ -55380,6 +55440,7 @@
 	// 设置请求头
 	headers.append('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
 
+	// 获取产品列表
 	var setProducts = exports.setProducts = function setProducts(data) {
 	    return {
 	        type: _constants.GETPRODUCTS,
@@ -55387,6 +55448,7 @@
 	    };
 	};
 
+	// 获取拉取列表
 	var setList = exports.setList = function setList(data) {
 	    return {
 	        type: _constants.GETLIST,
@@ -55394,10 +55456,54 @@
 	    };
 	};
 
+	// 获取IP列表
+	var setHosts = exports.setHosts = function setHosts(data) {
+	    return {
+	        type: _constants.GETHOSTS,
+	        hosts: data
+	    };
+	};
+
+	// 删除列表
+	var deleteList = exports.deleteList = function deleteList(i) {
+	    return {
+	        type: _constants.DELETELIST,
+	        index: i
+	    };
+	};
+
+	// 清空列表
+	var clearList = exports.clearList = function clearList() {
+	    return {
+	        type: _constants.CLEARLIST
+	    };
+	};
+
+	// 更新路径
+	var updatePath = exports.updatePath = function updatePath(value, i) {
+	    return {
+	        type: _constants.UPDATEPATH,
+	        value: value,
+	        index: i
+	    };
+	};
+
+	// 获取产品下拉框数据
+	function getSelects() {
+	    return function (dispatch, getState) {
+	        return dispatch(fetchProducts());
+	    };
+	}
+
+	// 获取ip下拉框数据
+	function getHosts(product) {
+	    return function (dispatch, getState) {
+	        return dispatch(fetchHosts(product));
+	    };
+	}
+
 	function fetchProducts() {
 	    return function (dispatch) {
-	        var bar = 1;
-
 	        var request = new Request('/get_user_products/', {
 	            headers: headers,
 	            method: 'POST',
@@ -55409,16 +55515,24 @@
 	            return res.json();
 	        }).then(function (data) {
 	            dispatch(setProducts(data));
-	        }).catch(function (e) {
-	            console.log(e.message);
 	        });
 	    };
 	}
 
-	// 获取下拉框数据
-	function getSelects() {
-	    return function (dispatch, getState) {
-	        return dispatch(fetchProducts());
+	function fetchHosts(product) {
+	    return function (dispatch) {
+	        var request = new Request('/get_ips_by_product/', {
+	            headers: headers,
+	            method: 'POST',
+	            credentials: 'include',
+	            body: 'product=' + product
+	        });
+
+	        return fetch(request).then(function (res) {
+	            return res.json();
+	        }).then(function (data) {
+	            dispatch(setHosts(data));
+	        });
 	    };
 	}
 
@@ -55939,6 +56053,10 @@
 	            _this.setState({ iconLoading: true });
 	        };
 
+	        _this.handleChange = function (e) {
+	            _this.props.handleChange(e.target);
+	        };
+
 	        _this.state = {
 	            loading: false,
 	            iconLoading: false
@@ -55949,9 +56067,14 @@
 	    // 拉取状态
 
 
+	    // 更新路径
+
+
 	    _createClass(List, [{
 	        key: 'render',
 	        value: function render() {
+	            var _this2 = this;
+
 	            var getFieldProps = this.props.form.getFieldProps;
 
 
@@ -55965,10 +56088,10 @@
 	                _react2.default.createElement(
 	                    'ul',
 	                    { className: 'list-group mt50 list-box' },
-	                    this.props.lists.map(function (e, i) {
+	                    this.props.lists.map(function (e, index) {
 	                        return _react2.default.createElement(
 	                            'li',
-	                            { className: 'list-group-item clearfix', key: i },
+	                            { className: 'list-group-item clearfix', key: index },
 	                            _react2.default.createElement(
 	                                'row',
 	                                null,
@@ -55986,9 +56109,11 @@
 	                                    _col2.default,
 	                                    { span: 9 },
 	                                    _react2.default.createElement(_input2.default, {
+	                                        id: index,
 	                                        style: { width: '80%' },
-	                                        placeholder: '请填写路径',
-	                                        defaultValue: e.path
+	                                        placeholder: '请输入路径',
+	                                        value: e.path,
+	                                        onChange: _this2.handleChange
 	                                    })
 	                                ),
 	                                _react2.default.createElement(
@@ -55996,7 +56121,13 @@
 	                                    { span: 3 },
 	                                    _react2.default.createElement(
 	                                        _button2.default,
-	                                        { type: 'dashed', icon: 'cross-circle' },
+	                                        { type: 'dashed', icon: 'copy', onClick: _this2.props.copy.bind(_this2, e) },
+	                                        '拷贝'
+	                                    ),
+	                                    '   ',
+	                                    _react2.default.createElement(
+	                                        _button2.default,
+	                                        { type: 'dashed', icon: 'cross-circle', onClick: _this2.props.delete.bind(_this2, index) },
 	                                        '删除'
 	                                    )
 	                                )
@@ -56014,13 +56145,18 @@
 	                    { className: 'text-center mt50' },
 	                    _react2.default.createElement(
 	                        _button2.default,
-	                        { type: 'primary', icon: 'cloud-download-o', loading: this.state.iconLoading, onClick: this.enterIconLoading },
+	                        {
+	                            type: 'primary',
+	                            icon: 'cloud-download-o',
+	                            loading: this.state.iconLoading,
+	                            onClick: this.enterIconLoading
+	                        },
 	                        '拉取日志'
 	                    ),
 	                    '   ',
 	                    _react2.default.createElement(
 	                        _button2.default,
-	                        { type: 'ghost', icon: 'reload' },
+	                        { type: 'ghost', icon: 'reload', onClick: this.props.clear },
 	                        '清空列表'
 	                    )
 	                )
@@ -64450,7 +64586,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n  font-family: Arial, 'Microsoft YaHei', 'Source Sans Pro', Helvetica, sans-serif;\n  background: url(" + __webpack_require__(823) + ");\n}\n.log-header .panel-title {\n  text-align: center;\n  font-size: 29px !important;\n}\n.log-box {\n  width: 80%;\n  position: absolute;\n  left: 50%;\n  top: 10%;\n  margin-left: -40%;\n}\n.exit-btn {\n  position: absolute;\n  right: 20px;\n}\n.selectBox {\n  width: 120px;\n}\n.mt50 {\n  margin-top: 50px;\n}\n.list-box {\n  min-height: 300px;\n  max-height: 400px;\n  overflow: auto;\n}\n.log-header .panel-heading {\n  color: #5F5F5F;\n  background-color: #E4E4E4;\n}\n", ""]);
+	exports.push([module.id, "body {\n  font-family: Arial, 'Microsoft YaHei', 'Source Sans Pro', Helvetica, sans-serif;\n  background: url(" + __webpack_require__(823) + ");\n}\n.log-header .panel-title {\n  text-align: center;\n  font-size: 18px !important;\n}\n.log-box {\n  width: 80%;\n  position: absolute;\n  left: 50%;\n  top: 10%;\n  margin-left: -40%;\n}\n.exit-btn {\n  position: absolute;\n  right: 20px;\n  top: 7px;\n}\n.selectBox {\n  width: 120px;\n}\n.mt50 {\n  margin-top: 50px;\n}\n.list-box {\n  min-height: 300px;\n  max-height: 400px;\n  overflow: auto;\n}\n.log-header .panel-heading {\n  color: #5F5F5F;\n  background-color: #E4E4E4;\n}\n.circle-box {\n  position: absolute;\n  left: 13px;\n  top: 14px;\n}\n.circle-box .circle {\n  width: 14px;\n  height: 14px;\n  float: left;\n  margin-right: 9px;\n  border: 1px solid #ccc;\n  border-radius: 50%;\n}\n.circle-box .red-circle {\n  background: #ED544B;\n}\n.circle-box .yellow-circle {\n  background: #F7BE36;\n}\n.circle-box .gray-circle {\n  background: #CFCFCF;\n}\n", ""]);
 
 	// exports
 

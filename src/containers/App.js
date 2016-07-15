@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Input, Select, Button, Form, Modal } from 'antd'
-import { getSelects, setList } from '../actions/count'
+import { getSelects, getHosts, setList, deleteList, updatePath, clearList } from '../actions/count'
 import List from '../components/List'
 
 const Option = Select.Option
@@ -20,14 +20,18 @@ class App extends Component {
     componentDidMount() {
         const { getSelects } = this.props
 
-        // 获取下拉框数据
+        // 获取产品列表
         getSelects()
     }
 
 
     // 获取选中产品
-    getHosts = value => {
-        console.log(value)
+    getIps = value => {
+        const { getHosts } = this.props
+
+        getHosts(value)
+
+        this.props.form.setFieldsValue({'hosts': []})
     }
 
     // 加入列表
@@ -76,26 +80,46 @@ class App extends Component {
         })
     }
 
+    // 拷贝
+    copy = (e) => {
+        this.props.setList([{product: e.product, host: e.host, path: e.path}])
+    }
+
+    // 删除
+    delete = (index) => {
+        this.props.deleteList(index)
+    }
+
+    // 更新路径
+    handleChange = (e) => {
+        this.props.updatePath(e.value, e.id)
+    }
+
+    // 清空列表
+    clear = () => {
+        this.props.clearList()
+    }
+
     render() {
-        const { products, ips, lists } = this.props
+        const { products, ips, lists, update } = this.props
 
         const { getFieldProps } = this.props.form
 
         const productProps = getFieldProps('products', {
             rules: [
-                { required: true, message: '请选择产品' },
+                { required: true, message: '请选择产品' }
             ]
         })
 
         const hostProps = getFieldProps('hosts', {
             rules: [
-                { required: true, type: 'array', message: '请选择IP' },
+                { required: true, type: 'array', message: '请选择IP' }
             ]
         })
 
         const pathProps = getFieldProps('paths', {
             rules: [
-                { required: true, message: '请填写路径' },
+                { required: true, message: '请填写路径' }
             ]
         })
 
@@ -104,6 +128,11 @@ class App extends Component {
                 <div className="panel panel-default log-header">
                     <div className="panel-heading header-style">
                         <h1 className="panel-title">
+                            <ul className="circle-box">
+                                <li className="red-circle circle"></li>
+                                <li className="yellow-circle circle"></li>
+                                <li className="gray-circle circle"></li>
+                            </ul>
                             日志拉取工具
                             <Button className="exit-btn" onClick={this.showConfirm}>
                                 <span className="glyphicon glyphicon-off"></span>
@@ -112,14 +141,14 @@ class App extends Component {
                     </div>
                     <div className="panel-body">
                         <Form inline form={this.props.form}>
-                            <FormItem label="产品">
+                            <FormItem label="产品" hasFeedback>
                                 <Select showSearch
                                     {...productProps}
                                     style={{ width: '120px' }} 
                                     placeholder="请选择产品"
                                     optionFilterProp="children"
                                     notFoundContent="无法找到"
-                                    onSelect={this.getHosts}
+                                    onSelect={this.getIps}
                                 >
                                     {
                                         products.map((e,index) => 
@@ -128,7 +157,7 @@ class App extends Component {
                                     }
                                 </Select>
                             </FormItem>
-                            <FormItem label="IP">
+                            <FormItem label="IP" hasFeedback>
                                 <Select 
                                     showSearch
                                     multiple
@@ -145,7 +174,7 @@ class App extends Component {
                                     }
                                 </Select>
                             </FormItem>
-                            <FormItem label="路径">
+                            <FormItem label="路径" hasFeedback>
                                 <Input
                                     {...pathProps} 
                                     style={{ width: '300px' }}
@@ -156,7 +185,15 @@ class App extends Component {
                                 <Button onClick={this.handleSubmit}>加入列表</Button>
                             </FormItem>
                         </Form>
-                        <List lists={lists}></List>
+                        <List 
+                            lists={lists} 
+                            update={update}
+                            copy={this.copy} 
+                            delete={this.delete}
+                            handleChange={this.handleChange}
+                            clear={this.clear}
+                        >
+                        </List>
                     </div>
                 </div>
             </div>
@@ -168,10 +205,11 @@ const getData = state => {
     return {
         products: state.update.products,
         ips: state.update.ips,
-        lists: state.list.lists
+        lists: state.list.lists,
+        update: state.list.update,
     }
 }
 
 App = createForm()(App)
 
-export default connect(getData, { getSelects, setList })(App)
+export default connect(getData, { getSelects, getHosts, setList, deleteList, updatePath, clearList })(App)
