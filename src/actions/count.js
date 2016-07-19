@@ -1,4 +1,4 @@
-import { GETPRODUCTS, GETHOSTS, GETLIST, DELETELIST, UPDATEPATH, CLEARLIST} from '../constants' 
+import { GETPRODUCTS, GETHOSTS, GETLIST, DELETELIST, UPDATEPATH, CLEARLIST, SAVELOG, CLEARLOG} from '../constants' 
 import 'whatwg-fetch'  // 引入fetch来进行Ajax
 
 // 创建对象时设置初始化信息
@@ -55,6 +55,21 @@ export const updatePath = (value, i) => {
     }
 }
 
+// 存储日志列表
+export const saveLog = (param) => {
+    return {
+        type: SAVELOG,
+        data: param
+    }
+}
+
+// 清空日志
+export const clearLog = () => {
+    return {
+        type: CLEARLOG
+    }
+}
+
 // 获取产品下拉框数据
 export function getSelects() {
     return (dispatch, getState) => {
@@ -75,7 +90,6 @@ function fetchProducts() {
             headers,
             method: 'POST',
             credentials: 'include' // 添加cookies
-            // body: `foo=${bar}`
         })
 
         return fetch(request)

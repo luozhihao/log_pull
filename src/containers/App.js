@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Input, Select, Button, Form, Modal } from 'antd'
-import { getSelects, getHosts, setList, deleteList, updatePath, clearList } from '../actions/count'
+import { getSelects, getHosts, setList, deleteList, updatePath, clearList, saveLog, clearLog } from '../actions/count'
 import List from '../components/List'
 
 const Option = Select.Option
@@ -24,7 +24,6 @@ class App extends Component {
         getSelects()
     }
 
-
     // 获取选中产品
     getIps = value => {
         const { getHosts } = this.props
@@ -36,7 +35,7 @@ class App extends Component {
 
     // 加入列表
     handleSubmit = e => {
-        const { setList } = this.props
+        const { setList, clearLog } = this.props
 
         e.preventDefault()
 
@@ -46,10 +45,12 @@ class App extends Component {
                 return
             }
 
+            clearLog() // 清空日志
+
             let list = []
 
             values.hosts.map(e => {
-                list.push({product: values.products, host: e, path: values.paths})
+                list.push({product: values.products, ip: e, path: values.paths})
             })
 
             setList(list)
@@ -82,7 +83,7 @@ class App extends Component {
 
     // 拷贝
     copy = (e) => {
-        this.props.setList([{product: e.product, host: e.host, path: e.path}])
+        this.props.setList([{product: e.product, ip: e.ip, path: e.path}])
     }
 
     // 删除
@@ -98,10 +99,21 @@ class App extends Component {
     // 清空列表
     clear = () => {
         this.props.clearList()
+        this.props.clearLog()
+    }
+
+    // 清空list
+    clearPaths = () => {
+        this.props.clearList()
+    }
+
+    // 存储日志
+    saveLog = param => {
+        this.props.saveLog(param)
     }
 
     render() {
-        const { products, ips, lists, update } = this.props
+        const { products, ips, lists, update, logs } = this.props
 
         const { getFieldProps } = this.props.form
 
@@ -186,12 +198,15 @@ class App extends Component {
                             </FormItem>
                         </Form>
                         <List 
-                            lists={lists} 
+                            lists={lists}
+                            logs={logs} 
                             update={update}
                             copy={this.copy} 
                             delete={this.delete}
                             handleChange={this.handleChange}
                             clear={this.clear}
+                            saveLog={this.saveLog}
+                            clearPaths={this.clearPaths}
                         >
                         </List>
                     </div>
@@ -207,9 +222,10 @@ const getData = state => {
         ips: state.update.ips,
         lists: state.list.lists,
         update: state.list.update,
+        logs: state.list.logs
     }
 }
 
 App = createForm()(App)
 
-export default connect(getData, { getSelects, getHosts, setList, deleteList, updatePath, clearList })(App)
+export default connect(getData, { getSelects, getHosts, setList, deleteList, updatePath, clearList, saveLog, clearLog })(App)

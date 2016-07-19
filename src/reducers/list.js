@@ -1,9 +1,10 @@
-import { GETLIST, DELETELIST, UPDATEPATH, CLEARLIST } from '../constants'
+import { GETLIST, DELETELIST, UPDATEPATH, CLEARLIST, SAVELOG, CLEARLOG } from '../constants'
 
 // 初始化state数据
 const initialState = {
     lists: [],
-    update: false // 强制render
+    update: false, // 强制render
+    logs: []
 }
 
 export default function list(state = initialState, action) {
@@ -21,6 +22,10 @@ export default function list(state = initialState, action) {
             return Object.assign({}, state, { lists: state.lists, update: !state.update })
         case CLEARLIST: 
             return Object.assign({}, state, { lists: [] })
+        case SAVELOG:
+            return Object.assign({}, state, { logs: action.data })
+        case CLEARLOG:
+            return Object.assign({}, state, { logs: [] })
         default:
             return state
     }
